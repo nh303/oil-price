@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -14,9 +8,7 @@ from sklearn.model_selection import train_test_split
 
 
 
-# In[2]:
 
-#plot two curves on same x axis, different y axis
 def dual_axis_plot(xaxis,data1,data2,fst_color='r',
                     sec_color='b',fig_size=(10,5),
                    x_label='',y_label1='',y_label2='',
@@ -45,20 +37,13 @@ def dual_axis_plot(xaxis,data1,data2,fst_color='r',
     plt.grid(grid)
     plt.title(title)
     plt.show()
-
-
-
-# In[3]:
-
-#read dataframe    
+    
 df=pd.read_csv(r'C:\Users\home\no_need\Downloads\quant-trading-master\quant-trading-master\Oil Money project\data\vas crude copaud.csv')
 df.set_index('date',inplace=True)
 df.index=pd.to_datetime(df.index)
 
 
-# In[4]:
 
-#run regression on each input
 
 D={}
 
@@ -71,10 +56,6 @@ for i in df.columns:
             
 D=dict(sorted(D.items(),key=lambda x:x[1],reverse=True))
 
-
-# In[5]:
-
-#create r squared bar charts
 
 colorlist=[]
 
@@ -107,9 +88,6 @@ plt.xticks(np.arange(len(D))+width,
 plt.show()
 
 
-# In[6]:
-
-#normalized value of wti,brent and vasconia
 ax=plt.figure(figsize=(10,5)).add_subplot(111)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -127,9 +105,6 @@ plt.title('Crude Oil Blends')
 plt.show()
 
 
-# In[7]:
-
-#cop vs gold
 dual_axis_plot(df.index,df['cop'],df['gold'],
                x_label='Date',y_label1='Colombian Peso',
                y_label2='Gold LBMA',
@@ -138,7 +113,7 @@ dual_axis_plot(df.index,df['cop'],df['gold'],
                title='COP VS Gold',
                fst_color='#96CEB4',sec_color='#FFA633')
 
-#cop vs usd
+
 dual_axis_plot(df.index,df['cop'],df['usd'],
                x_label='Date',y_label1='Colombian Peso',
                y_label2='US Dollar',
@@ -148,9 +123,6 @@ dual_axis_plot(df.index,df['cop'],df['usd'],
                fst_color='#9DE0AD',sec_color='#5C4E5F')
 
 
-# In[8]:
-
-#cop vs brl
 dual_axis_plot(df.index,df['cop'],df['brl'],
                x_label='Date',y_label1='Colombian Peso',
                y_label2='Brazilian Real',
@@ -159,7 +131,7 @@ dual_axis_plot(df.index,df['cop'],df['brl'],
                title='COP VS BRL',
                fst_color='#a4c100',sec_color='#f7db4f')
 
-#usd vs mxn
+
 dual_axis_plot(df.index,df['usd'],df['mxn'],
                x_label='Date',y_label1='US Dollar',
                y_label2='Mexican Peso',
@@ -168,7 +140,7 @@ dual_axis_plot(df.index,df['usd'],df['mxn'],
                title='USD VS MXN',
                fst_color='#F4A688',sec_color='#A2836E')
 
-#cop vs mxn
+
 dual_axis_plot(df.index,df['cop'],df['mxn'],
                x_label='Date',y_label1='Colombian Peso',
                y_label2='Mexican Peso',
@@ -177,10 +149,6 @@ dual_axis_plot(df.index,df['cop'],df['mxn'],
                title='COP VS MXN',
                fst_color='#F26B38',sec_color='#B2AD7F')
 
-
-# In[9]:
-
-#cop vs vasconia
 dual_axis_plot(df.index,df['cop'],df['vasconia'],
                x_label='Date',y_label1='Colombian Peso',
                y_label2='Vasconia Crude',
@@ -190,9 +158,6 @@ dual_axis_plot(df.index,df['cop'],df['vasconia'],
                fst_color='#346830',sec_color='#BBAB9B')
 
 
-# In[10]:
-
-#create before/after regression comparison
 m=sm.OLS(df['cop'][:'2016'],sm.add_constant(df['vasconia'][:'2016'])).fit()
 before=m.rsquared
 m=sm.OLS(df['cop']['2017':],sm.add_constant(df['vasconia']['2017':])).fit()
@@ -209,10 +174,6 @@ plt.title('Before/After Regression')
 plt.show()
 
 
-# In[11]:
-
-
-#create 1 std, 2 std band before 2017
 x_train,x_test,y_train,y_test=train_test_split(
         sm.add_constant(df['vasconia'][:'2016']),
         df['cop'][:'2016'],test_size=0.5,shuffle=False)
@@ -246,11 +207,6 @@ plt.xlabel('\nDate')
 plt.ylabel('COPAUD')
 plt.show()
 
-
-# In[12]:
-
-
-#create 1 std, 2 std band after 2017
 x_train,x_test,y_train,y_test=train_test_split(
         sm.add_constant(df['vasconia']['2017':]),
         df['cop']['2017':],test_size=0.5,shuffle=False)
@@ -285,32 +241,18 @@ plt.ylabel('COPAUD')
 plt.show()
 
 
-# In[13]:
-
-#shrink data size for better viz
 dataset=df['2016':]
 dataset.reset_index(inplace=True)
 
 
-# In[14]:
-
-#import the strategy script as this is a script for analytics and visualization
-#the official trading strategy script is in the following link
-# https://github.com/je-suis-tm/quant-trading/blob/master/Oil%20Money%20project/Oil%20Money%20Trading%20backtest.py
 import oil_money_trading_backtest as om
 
-#generate signals,monitor portfolio performance
-#plot positions and total asset
 signals=om.signal_generation(dataset,'vasconia','cop',om.oil_money,stop=0.001)
 p=om.portfolio(signals,'cop')
 om.plot(signals,'cop')
 om.profit(p,'cop')
 
 
-# In[15]:
-
-
-#try different holding period and stop loss/profit point
 dic={}
 for holdingt in range(5,20):
     for stopp in np.arange(0.001,0.005,0.0005):
@@ -324,10 +266,7 @@ for holdingt in range(5,20):
 profile=pd.DataFrame({'params':list(dic.keys()),'return':list(dic.values())})
 
 
-# In[16]:
 
-
-#plotting the distribution of return
 ax=plt.figure(figsize=(10,5)).add_subplot(111)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -341,13 +280,6 @@ plt.xlabel('Return (%)')
 plt.show()
 
 
-# In[17]:
-
-
-#plotting the heatmap of return under different parameters
-#try to find the optimal parameters to maximize the return
-
-#convert the dataframe into a matrix format first
 matrix=pd.DataFrame(columns=[round(i,4) for i in np.arange(0.001,0.005,0.0005)])
 
 matrix['index']=np.arange(5,20)
@@ -360,7 +292,7 @@ for i in matrix.columns:
     matrix[i]=matrix[i].apply(float)
 
 
-#plotting
+
 fig=plt.figure(figsize=(10,5))
 ax=fig.add_subplot(111)
 sns.heatmap(matrix,cmap=plt.cm.viridis,
@@ -372,8 +304,5 @@ plt.ylabel('Position Holding Period (days)\n')
 plt.title('Profit Heatmap\n',fontsize=10)
 plt.style.use('default')
 
-#it seems like the return doesnt depend on the stop profit/loss point
-#it is correlated with the length of holding period
-#the ideal one should be 17 trading days
-#as for stop loss/profit point could range from 0.002 to 0.005
+
 
