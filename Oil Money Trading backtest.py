@@ -1,12 +1,4 @@
 
-# coding: utf-8
-
-# In[1]:
-
-
-#here is the official trading strategy script for this lil project
-#the details could be found in the readme of the repo, section norwegian krone and brent crude
-# https://github.com/je-suis-tm/quant-trading/blob/master/Oil%20Money%20project/README.md
 import statsmodels.api as sm
 import copy
 import pandas as pd
@@ -16,10 +8,6 @@ import os
 
 
 
-# In[2]:
-
-#theoratically we only need two sigma to trigger the trading signals
-#i only add one sigma to make it look better in visualization
 def oil_money(dataset):
     
     df=copy.deepcopy(dataset)
@@ -34,24 +22,6 @@ def oil_money(dataset):
     return df
 
 
-# In[3]:
-
-#the trading idea is straight forward
-#we run regression on nok and brent of the past 50 data points by default
-#if the rsquared exceeds 0.7 by default
-#the regression model is deemed valid
-#we calculate the standard deviation of the residual
-#and use +/- two sigma as the threshold to trigger the trading signals
-#once the trade is executed
-#we would start a counter to count the period of position holding
-#if the holding period exceeds 10 days by default
-#we clear our positions
-#meanwhile, if the spread between current price and entry price exceeds stop limit
-#which is 0.5 points by default in both ways
-#we clear our positions to claim profit/loss
-#once our positions are cleared
-#we recalibrate our regression model based on the latest 50 data points
-#we keep doing this on and on
 def signal_generation(dataset,x,y,method, \
                       holding_threshold=10, \
                       stop=0.5,rsquared_threshold=0.7, \
@@ -59,45 +29,32 @@ def signal_generation(dataset,x,y,method, \
     
     df=method(dataset)
     
-    #variable holding takes 3 values, -1,0,1
-    #0 implies no holding positions
-    #1 implies long, -1 implies short
-    #when we wanna clear our positions
-    #we just reverse the sign of holding
-    #which is quite convenient
+    
     holding=0
     
-    #trained is a boolean value
-    #it indicates whether the current model is valid
-    #in another word,when trained==True, r squared is over 0.7 by default
-    #and the regressand is within two sigma range from the fitted value
+   
     trained=False
     
-    #counter counts the days of position holding
+  
     counter=0
     
 
     for i in range(train_len,len(df)):
         
-        #when we have uncleared positions
+        
         if holding!=0:
             
-            #when counter exceeds holding threshold
-            #we clear our positions and reset all the parameters
+            
             if counter>holding_threshold:
                 df.at[i,'signals']=-holding            
                 holding=0
                 trained=False
                 counter=0
                 
-                #we use continue to skip this round of iteration
-                #only if the clearing condition gets triggered
+               
                 continue
                 
-            #plz note i make stop loss and stop profit symmetric
-            #thats why we use absolute value of the spread between current price and entry price
-            #usually stop loss and stop profit are asymmetric 
-            #as ppl cannot take as much loss as profit
+            
             if np.abs( \
                       df[y].iloc[i]-df[y][df['signals']!=0].iloc[-1] \
                       )>=stop:
@@ -112,25 +69,18 @@ def signal_generation(dataset,x,y,method, \
     
         else:
             
-            #if we do not have a valid model yet
-            #we would keep trying the latest 50 data points
+          
             if not trained:
                 X=sm.add_constant(df[x].iloc[i-train_len:i])
                 Y=df[y].iloc[i-train_len:i]
                 m=sm.OLS(Y,X).fit()
                 
-                #if r squared meets the statistical request
-                #which is 0.7 by default
-                #we can start to build up confidence intervals
+                
                 if m.rsquared>rsquared_threshold:
                     trained=True
                     sigma=np.std(Y-m.predict(X))
                     
-                    #plz note that we set the forecast and confidence intervals
-                    #for every data point after the current one
-                    #this would fill in the blank once our model turns invalid
-                    #when we have a new valid model
-                    #the new forecast and confidence intervals would cover the former one
+                    
                     df.at[i:,'forecast']= \
                     m.predict(sm.add_constant(df[x].iloc[i:]))
                     
@@ -146,20 +96,13 @@ def signal_generation(dataset,x,y,method, \
                     df.at[i:,'neg1 sigma']= \
                     df['forecast'].iloc[i:]-sigma
             
-            #once we have a valid model
-            #we can feel free to generate trading signals
+            
             if trained:
                 if df[y].iloc[i]>df['pos2 sigma'].iloc[i]:
                     df.at[i,'signals']=1
                     holding=1
                     
-                    #once the positions are entered
-                    #we set confidence intervals back to the fitted value
-                    #so we could avoid the confusion in our visualization
-                    #for instance. if we dont do that, 
-                    #there would be confidence intervals even when the model is broken
-                    #we could have been asking why no trade has been executed,
-                    #even when actual price falls out of the confidence intervals?
+                    
                     df.at[i:,'pos2 sigma']=df['forecast']
                     df.at[i:,'neg2 sigma']=df['forecast']
                     df.at[i:,'pos1 sigma']=df['forecast']
@@ -179,11 +122,6 @@ def signal_generation(dataset,x,y,method, \
     
 
 
-# In[4]:
-
-#this part is to monitor how our portfolio performs over time
-#details can be found from heiki ashi
-# https://github.com/je-suis-tm/quant-trading/blob/master/Heikin-Ashi%20backtest.py
 def portfolio(signals,close_price,capital0=5000):   
     
     positions=capital0//max(signals[close_price])
@@ -203,9 +141,6 @@ def portfolio(signals,close_price,capital0=5000):
     return portfolio
 
 
-# In[5]:
-
-#plotting fitted vs actual price with confidence intervals and positions
 def plot(signals,close_price):
     
     data=copy.deepcopy(signals[signals['forecast']!=0])
@@ -239,9 +174,7 @@ def plot(signals,close_price):
     plt.show()
 
 
-# In[6]:
 
-#plotting portfolio performance over time with positions
 def profit(portfolio,close_price):
     
     data=copy.deepcopy(portfolio)
@@ -267,7 +200,6 @@ def profit(portfolio,close_price):
     plt.show()
 
 
-# In[7]:
 
 
 def main():
@@ -276,14 +208,12 @@ def main():
     signals=signal_generation(df,'brent','nok',oil_money)
     p=portfolio(signals,'nok')
     print(signals.info())
-    #pandas.at[] is the fastest but it doesnt support datetime index
-    #so we have to set datetime index after iteration but before visualization
+    
     signals.set_index('?date',inplace=True)
     signals.index=pd.to_datetime(signals.index,format='%m/%d/%Y')
     p.set_index(signals.index,inplace=True)
     
-    #we only visualize data point from 387 to 600
-    #becuz the visualization of 5 years data could be too messy
+    
     plot(signals.iloc[387:600],'nok')
     profit(p.iloc[387:600],'nok')
     
