@@ -1,7 +1,3 @@
-# coding: utf-8
-
-# In[1]:
-
 
 import os
 import pandas as pd
@@ -11,10 +7,10 @@ import matplotlib.pyplot as plt
 import re
 
 
-df=pd.read_csv(r'C:\Users\home\no_need\Downloads\quant-trading-master\quant-trading-master\Oil Money project\data\urals crude rubaud.csv')
+df=pd.read_csv(r'C:\Users\...\data\urals crude rubaud.csv')
 
 
-# In[2]:
+
 
 
 df.set_index('date',inplace=True)
@@ -22,12 +18,7 @@ df.index=pd.to_datetime(df.index)
 df.dropna(inplace=True)
 
 
-# In[3]:
 
-#this is the part to create r squared of different regressors 
-#in different years for stepwise regression
-#we can use locals to create lists for different currency
-#each list contains r squared of different years
 year=df.index.year.drop_duplicates().tolist()
 var=locals()
 for i in df.columns:
@@ -44,8 +35,7 @@ ax=plt.figure(figsize=(10,5)).add_subplot(111)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 
-#to save you from the hassle
-#just use these codes to generate the bar chart
+
 width=0.3
 colorlist=['#c0334d','#d6618f','#f3d4a0','#f1931b']
 bar=locals()
@@ -65,11 +55,6 @@ plt.xticks(np.arange(1,len([i for i in df.columns if i!='rub'])*2+1,2)+(len(year
 plt.show()
 
 
-# In[4]:
-
-#this is similar to In[3]
-#In[3] is r squared of each regressor in each year
-#In[4] is r squared of each regressor of years cumulated
 var=locals()
 for i in df.columns:
     if i!='rub':
@@ -104,9 +89,7 @@ plt.xticks(np.arange(1,len([i for i in df.columns if i!='rub'])*2+1,2)+(len(year
 plt.show()
 
 
-# In[5]:
 
-#print model summary and actual vs fitted line chart
 x=sm.add_constant(pd.concat([df['urals']],axis=1))
 y=df['rub']
 m=sm.OLS(y['2017':'2018'],x['2017':'2018']).fit()
@@ -126,9 +109,6 @@ plt.xlabel('Date')
 plt.show()
 
 
-# In[6]:
-
-#print model summary and actual vs fitted line chart
 x=sm.add_constant(pd.concat([df['urals'],df['eur']],axis=1))
 y=df['rub']
 m=sm.OLS(y[:'2016'],x[:'2016']).fit()
@@ -147,10 +127,7 @@ plt.xlabel('Date')
 plt.show()
 
 
-# In[7]:
 
-#normalize different regressors by 100 as the initial value
-#so that we can observe the trend of different regressors in the same scale
 ax=plt.figure(figsize=(10,5)).add_subplot(111)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -166,10 +143,7 @@ plt.xlabel('Date')
 plt.show()
 
 
-# In[8]:
 
-#plot actual vs fitted line chart for each year
-#including one sigma and two sigma confidence interval
 for i in df.index.year.drop_duplicates():
     
     temp=df.loc[str(i):str(i)]
