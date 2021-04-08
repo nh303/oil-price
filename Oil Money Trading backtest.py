@@ -204,7 +204,7 @@ def profit(portfolio,close_price):
 
 def main():
     
-    df=pd.read_csv(r'C:\Users\home\no_need\Downloads\quant-trading-master\quant-trading-master\Oil Money project\data\brent crude nokjpy.csv')
+    df=pd.read_csv(r'C:\Users\...\data\brent crude nokjpy.csv')
     signals=signal_generation(df,'brent','nok',oil_money)
     p=portfolio(signals,'nok')
     print(signals.info())
