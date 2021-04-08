@@ -38,7 +38,7 @@ def dual_axis_plot(xaxis,data1,data2,fst_color='r',
     plt.title(title)
     plt.show()
     
-df=pd.read_csv(r'C:\Users\home\no_need\Downloads\quant-trading-master\quant-trading-master\Oil Money project\data\vas crude copaud.csv')
+df=pd.read_csv(r'C:\Users\home\...\Oil Money project\data\vas crude copaud.csv')
 df.set_index('date',inplace=True)
 df.index=pd.to_datetime(df.index)
 
